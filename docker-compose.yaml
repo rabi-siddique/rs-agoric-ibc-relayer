@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  agoric-local-1:
+    image: a3p:local
+    platform: linux/amd64
+    build: .
+    container_name: agoric-local-1
+    networks:
+      chain_network:
+    environment:
+      CHAIN_ID: agoric-local-1
+    volumes:
+      - .:/workspace
+      - state:/state
+    entrypoint: /workspace/chain/scripts/run-chain.sh
+
+  agoric-local-2:
+    image: a3p:local
+    platform: linux/amd64
+    build: .
+    container_name: agoric-local-2
+    networks:
+      chain_network:
+    environment:
+      CHAIN_ID: agoric-local-2
+    volumes:
+      - .:/workspace
+      - state:/state
+    entrypoint: /workspace/chain/scripts/run-chain.sh
+
+  relayer:
+    image: informalsystems/hermes:v1.7.3
+    container_name: relayer
+    depends_on:
+      - agoric-local-1
+      - agoric-local-2
+    volumes:
+      - .:/workspace
+      - state:/state
+    networks:
+      chain_network:
+    entrypoint: |
+      /bin/sh -c "
+        while [ ! -f /state/agoric-local-1 ]; do \
+          echo 'waiting for chains to start...'; \
+          sleep 10; \
+        done; \
+        /workspace/relayer/scripts/run-relayer.sh
+      "
+
+volumes:
+  state:
+
+networks:
+  chain_network:
