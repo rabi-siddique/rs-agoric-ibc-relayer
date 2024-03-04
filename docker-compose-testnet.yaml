@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  relayer:
+    image: informalsystems/hermes:v1.7.3
+    container_name: relayer
+    volumes:
+      - .:/workspace
+      - state:/state
+    entrypoint: |
+      /bin/sh -c "
+        /workspace/relayer/scripts/run-relayer.sh agoric-emerynet-8 agoricdev-23 /workspace/relayer/keys/whale-emerynet.key /workspace/relayer/keys/whale-devnet.key /workspace/relayer/config-testnet.toml
+      "
+
+volumes:
+  state:

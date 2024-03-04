@@ -46,7 +46,7 @@ services:
           echo 'waiting for chains to start...'; \
           sleep 10; \
         done; \
-        /workspace/relayer/scripts/run-relayer.sh
+        /workspace/relayer/scripts/run-relayer.sh agoric-local-1 agoric-local-2 /workspace/relayer/keys/alice.key /workspace/relayer/keys/bob.key /workspace/relayer/config.toml
       "
 
 volumes:

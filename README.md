@@ -1,3 +1,5 @@
+# IBC Testing with Local Chains
+
 ## Build Docker images
 
 Clone the repo and run the following command to build agoric chain image.
@@ -37,3 +39,38 @@ $ docker exec relayer hermes --config /workspace/relayer/config.toml tx ft-trans
 ```
 
 After completing the transaction, you should verify the account balances again to confirm the transfer.
+
+# IBC Testing with Emerynet and Devnet
+
+## Start the relayer
+
+The following command starts the network with two agoric chains and a relayer.
+
+```
+$ docker-compose -f docker-compose-testnet.yaml up -d
+```
+
+## Transfer IBC tokens
+
+Get the new channel ID got created from the relayer logs.
+```
+docker logs relayer
+```
+Use the new channel ID in the following command to transfer tokens from Emerynet to Devnet using IBC relayer.
+
+```
+$ docker exec relayer hermes --config /workspace/relayer/config-testnet.toml tx ft-transfer --src-chain agoric-emerynet-8 --src-channel <Channel-ID> \
+ --dst-chain agoricdev-23 --src-port transfer --amount 100 --denom 'ubld' --timeout-seconds 1000
+```
+
+Verify the account balances to confirm the transfer for both Emerynet and Devnet. 
+
+On devnet
+```
+agd query bank balances agoric1khw65emzav9t0cdhj3aw9x2v7m60jekjdf4whl
+```
+
+On emerynet
+```
+agd query bank balances agoric10emrzln03exuc9uv98mjwmp95735mjm6k2n9xm
+```
