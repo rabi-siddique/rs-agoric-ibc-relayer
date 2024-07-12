@@ -70,6 +70,7 @@ jobs:
 
       - name: Check and validate token balances post transfer
         run: |
+          sleep 5s
           # Define expected values
           expected_amount_chain1="499999900"
           expected_denom_chain1="ubld"
