@@ -49,9 +49,36 @@ jobs:
           curl https://devnet.api.agoric.net/cosmos/bank/v1beta1/balances/$WALLET_ADDRESS_DEVNET | 
           jq -r '.balances | length' > $DEVNET_BALANCE_FILE
 
+      - name: Confirm Connection Status
+        run: |
+          timeout 600 bash -c "\
+          until docker logs relayer 2>&1 | grep -q 'OpenConfirmConnection.*connection_id'; do
+            echo 'Awaiting confirmation for connection...'
+            sleep 1
+          done
+
+          echo 'Connection confirmed.'
+
+          line=$(docker logs relayer 2>&1 | grep 'OpenConfirmConnection.*connection_id')
+          connection_id=$(echo $line | grep -oP 'connection_id: \K[^,]*')
+          counterparty_connection_id=$(echo $line | grep -oP 'counterparty_connection_id: \K[^,]*')
+
+          echo 'Connection ID: $connection_id'
+          echo $connection_id > connection_id.txt
+
+          # Configuration file path
+          config_file="~/.ibc-setup/app.yaml"
+
+          # Replace the srcConnection and destConnection values in the configuration file
+          sed -i "s/^srcConnection: .*/srcConnection: $connection_id/" "$config_file"
+          sed -i "s/^destConnection: .*/destConnection: $counterparty_connection_id/" "$config_file""
+
+      - name: Start Agoric Relayer
+        run: agoric ibc-relayer start --poll 10 &
+
       - name: Monitor Channel Initialization
         run: |
-          timeout 900 bash -c "\
+          timeout 360 bash -c "\
           until line=\$(docker logs relayer 2>&1 | grep 'OpenInitChannel'); do
             echo 'Waiting for channel initialization...'
             sleep 1
